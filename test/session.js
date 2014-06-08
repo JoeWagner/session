@@ -781,4 +781,37 @@ describe('session()', function(){
     })
 
   })
+
+  describe('MemoryStore', function () {
+    it('should destory sessions after .maxAge has elapsed', function(done){
+      var maxAge = 500
+        , store = new session.MemoryStore;
+      
+      var app = express()
+        .use(cookieParser())
+        .use(session({ store: store, secret: 'keyboard cat', cookie: { maxAge: maxAge }}))
+        .use(function(req, res, next){
+          req.session.count = req.session.count || 0;
+          req.session.count++;
+          res.end();
+        });
+
+      request(app)
+      .get('/')
+      .end(function(err, res){
+        Object.keys(store.sessions).length.should.equal(1);
+
+        setTimeout(function(){
+          request(app)
+            .get('/')
+            // The browser has deleted the old cookie so it's not sent
+            .end(function(err, res){
+              // The store should have deleted the old session
+              Object.keys(store.sessions).length.should.equal(1);
+              done();
+            });
+        }, maxAge + 100);
+      });
+    })
+  })
 })
