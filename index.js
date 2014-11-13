@@ -162,8 +162,8 @@ function session(options){
     // expose store
     req.sessionStore = store;
 
-    // get the session ID from the cookie
-    var cookieId = req.sessionID = getcookie(req, name, secret);
+    // check if sessionId is present otherwise get it from the cookie
+    var cookieId = req.sessionID || (req.sessionID = getcookie(req, name, secret));
 
     // set-cookie
     onHeaders(res, function(){
